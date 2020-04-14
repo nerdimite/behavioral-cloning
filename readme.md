@@ -24,8 +24,8 @@ This repository contains the code for the CellStart Webinar on ["Intro to Self D
  
 ### References
  
-https://devblogs.nvidia.com/deep-learning-self-driving-cars
-https://arxiv.org/abs/1604.07316v1
-https://github.com/udacity/CarND-Behavioral-Cloning-P3
-https://github.com/udacity/self-driving-car-sim
-https://github.com/naokishibuya/car-behavioral-cloning
+* https://devblogs.nvidia.com/deep-learning-self-driving-cars
+* https://arxiv.org/abs/1604.07316v1
+* https://github.com/udacity/CarND-Behavioral-Cloning-P3
+* https://github.com/udacity/self-driving-car-sim
+* https://github.com/naokishibuya/car-behavioral-cloning
