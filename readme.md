@@ -22,7 +22,7 @@ This repository contains the code for the CellStart Webinar on ["Intro to Self D
 3. After training the model, you can run the `drive.py` script as
 
 ```bash
-python drive.py model.h5
+python drive.py models/model-10-plains.pth
 ```
 
 ### References
