@@ -13,13 +13,17 @@ import cv2
 from flask import Flask
 from io import BytesIO
 
-from tensorflow.keras.models import load_model
+import torch
+import torchvision.transforms as tfms
+from model import NvidiaModel
 
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
 prev_image_array = None
 
+# device = 'cuda' if torch.cuda.is_available() else 'cpu'
+device = 'cpu'
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -43,13 +47,14 @@ class SimplePIController:
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
+set_speed = 30
 controller.set_desired(set_speed)
 
 def preprocess_image(img):
-    '''Preprocess an image by cropping and resizing'''
+    '''Preprocess an image by cropping, resizing and tensorizing'''
     img = img[60:-25,:]
     img = cv2.resize(img, (200, 66))
+    img = tfms.ToTensor()(img).unsqueeze(0)
     return img
 
 @sio.on('telemetry')
@@ -66,14 +71,12 @@ def telemetry(sid, data):
         frame = Image.open(BytesIO(base64.b64decode(imgString)))
         # Convert to numpy array
         frame = np.asarray(frame)
-        
+
         # Preprocess image
         image = preprocess_image(frame)
-        # Expanding as a batch and changing the dtype to float16
-        image = np.array([image], dtype=np.float16)
-        
+
         # Predicting the steering angle
-        steering_angle = float(model.predict(image, batch_size=1))
+        steering_angle = float(model(image.to(device)).squeeze(0).cpu())
 
         throttle = controller.update(float(speed))
 
@@ -112,7 +115,7 @@ if __name__ == '__main__':
         'model',
         type=str,
         default='',
-        help='Path to model h5 file. Model should be on the same path.'
+        help='Path to model pth file. Model should be on the same path.'
     )
     parser.add_argument(
         'image_folder',
@@ -123,7 +126,10 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    model = load_model(args.model)
+    model = NvidiaModel()
+    model.load_state_dict(torch.load(args.model))
+    model.to(device)
+    model.eval()
 
     if args.image_folder != '':
         print("Creating image folder at {}".format(args.image_folder))
